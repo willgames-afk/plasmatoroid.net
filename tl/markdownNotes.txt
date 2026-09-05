@@ -1,0 +1,108 @@
+Markdown Engine State transitions
+
+
+Blocks (top-level leaf)
+- Thematic breaks (---, ***, ___, can be seperated by zero or more spaces)
+- Headings (#, ##, ###, ####, #####, ######)
+- Ref definitions ([reference]: link)
+
+Blocks (leaf)
+- Indented code blocks (\n\tcode)
+- Fenced code blocks (\n```name\n)
+- Blank lines (\n\n)
+- Embeds, including images (![alt](url))
+
+Blocks (container)
+- Ordered lists (1. )
+- Unordered Lists (-, +, *)
+- Footnote defs  ([^reference]: para)
+
+Blocks (supercontainer)
+- Blockquotes (>)
+
+Inline Items
+- Escapes (\c)
+- Code spans (`code`, `` ` ``)
+- Emphasis (*em*)
+- Strong (**strong**)
+- Strikethru (~~strike~~)
+- Links ([text](url), [ref], [text][ref], [^footnote])
+
+Notes
+- All Blocks are start-of-line bound, meaning the parser only checks for them once per line
+- All Blocks will end a paragraph, if one has been started
+- No inline items are start-of-line bound
+- All top-level leaf items must occupy a single line
+
+
+Higherarchy
+blockquote
+	- blockquote ...
+	- container
+		- container ...
+		- blockquote ...
+		- leaf
+	- top-level leaf
+	- leaf
+
+
+All example assume
+- We are not currently in emphasis
+- Input is preceded by whitespace
+- Input is followed by whitespace
+Additionally, all examples are not in emphasis on exit.
+
+Results in verbatim text
+			            * -> *
+					   ** -> **
+					  *** -> ***
+					 **** -> ****
+                     foo* -> foo*
+      			    foo** -> foo**
+				   foo*** -> foo***
+				  foo**** -> foo****
+		     *-expression -> *-expression
+
+Results in one em tag
+                    *foo* -> <em>foo</em>
+			  tri*angles* -> tri<em>angles</em>
+			  tri*ang*les -> tri<em>ang</em>les
+				   *foo** -> <em>foo*</em>
+    *up *up fakeout** c* d* -> <em>up up fakeout** c d</em>
+   *up *up *up fakeout*** a* b* c* -> <em>up up up fakeout*** a b c</em>
+   *up *up *up fakeout***h*m*m* -> <em>up up up fakeout***hmm</em>
+   *foo ***bar* baz bogo*** -> <em>foo <strong>bar baz bogo</strong></em>
+	      		  *foo*** -> <em>foo**</em>
+		  *foo *bar* baz* -> <em>foo bar baz</em>
+*foo *bar *baz* bim* bap* -> <em>foo bar baz bim bap</em>
+*up *up *up down* *up down* down* down* -> <em>up up up down up down down down</em>
+
+Results in one strong tag
+                  **foo** -> <strong>foo</strong>
+	**foo **bar**baz**hmm -> <strong>foo barbaz</strong>hmm
+		 **tri*** angles* -> <strong>tri</strong> angles*
+		         **foo*** -> <strong>foo*</strong>
+      		    **foo**** -> <strong>foo**</strong>
+			tri**angles** -> tri<strong>angles</strong>
+
+Results in no nesting but more than one tag
+        **foo**bar**baz** -> <strong>foo</strong>bar<strong>baz</strong>
+		    *foo*bar*baz* -> <em>foo</em>bar<em>baz</em>
+			 t*o*g*g*l*e* -> t<em>o</em>g<em>g</em>l<em>e</em>
+		  *tri***angles** -> <em>tri</em><strong>angles</strong>
+		  **tri***angles* -> <strong>tri</strong><em>angles</em>
+
+Results in nesting
+                ***foo*** -> <em><strong>foo</strong></em>
+            *foo **bar*** -> <em>foo <strong>bar</strong></em>
+            **foo *bar*** -> <strong>foo <em>bar</em></strong>
+		  **tri*angles*** -> <strong>tri<em>angles</em></strong>
+      		   ****foo*** -> <em><strong>*foo</strong></em>
+      		  ****foo**** -> <em><strong>*foo*</strong></em>
+	      *tri**ang**les* -> <em>tri<strong>ang</strong>les</em>
+		  *tri**angles*** -> <em>tri<strong>angles</strong></em>
+		  ***tri*angles** -> <strong><em>tri</em>angles</strong>
+		  ***tri**angles* -> <em><strong>tri</strong>angles</em>
+	  ***tri**ang**les*** -> <em><strong>tri</strong>ang<strong>les</em>
+***up ***up d1* d2** d3*** -> <em><strong>up up d1 d2 d3</strong></em>
+***up ***up d1*d2*d3** ** -> <strong><em>up up d1d2</em>d3 </strong>

@@ -1,0 +1,45 @@
+[Unit]
+Description=FastCGI server for tl template system
+After=network.target
+RequiresMountsFor=/srv/www/
+
+[Service]
+Type=simple
+WorkingDirectory=/srv/www/
+User=www-data
+Group=www-data
+
+ProtectProc=invisible
+NoNewPrivileges=yes
+UMask=0027
+TimerSlackNSec=5ms
+ProtectSystem=strict
+ProtectHome=yes
+NoExecPaths=/
+InaccessiblePaths=-/boot -/efi -/home -/mnt -/media -/opt -/root -/var
+ExecPaths=-/usr/bin -/usr/local/bin -/usr/lib -/usr/lib64 -/usr/libexec
+ReadWritePaths=/srv/www/
+PrivateTmp=yes
+PrivateDevices=yes
+PrivateIPC=yes
+PrivateUsers=yes
+ProtectHostname=yes
+ProtectClock=yes
+ProtectKernelTunables=yes
+MountAPIVFS=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictNamespaces=yes
+LockPersonality=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+PrivateMounts=yes
+SystemCallFilter=@system-service
+SystemCallArchitectures=native
+
+ExecStart=/bin/tl
+
+[Install]
+WantedBy=multi-user.target

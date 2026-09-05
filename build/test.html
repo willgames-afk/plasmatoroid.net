@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Plasmatoroid</title>
+	<meta name="color-scheme" content="dark">
+<style>
+body {
+	background-color: black;
+	color: #b7f;
+	font-family: sans-serif;
+	max-width:800px;
+	margin:auto;
+}
+::selection{
+	background: rgba(100,100,100,0.75)
+}
+h1, h2, h3 {color: #a3f;}
+a {color: #ddd}
+header h1 {
+	margin-bottom: 5px;
+	margin-top: 5px;
+	font-size: 45px;
+}
+nav a {
+	margin-right:4px;
+}
+footer {
+	display: block;
+	position:absolute;
+	bottom:0;
+}
+</style>
+
+<style>
+ul.bullet {
+	list-style-type: none;
+	padding-left: 15px;
+}
+
+input[type="checkbox"] {
+	position: relative;
+	width: 1em;
+	height: 1em;
+	border: 2px solid #b7f;
+	border-radius: 3px;
+	outline: 0;
+	cursor:default;
+	appearance:none;
+	background-color: #000;
+	border-color: #b7f;
+	margin-bottom: 0;
+	margin-top: 0;
+}
+
+input[type="checkbox"]:checked {
+	background-color: #b7f;
+}
+
+input[type="checkbox"]:checked::before {
+	position: absolute;
+	content: "";
+	border-width: 0 2px 2px 0;
+	transform: rotate(45deg);
+	display: block;
+	top: -2px;
+	left: 3px;
+	width: 4px;
+	height: 10px;
+	border-style: solid;
+	border-color: #000;
+}
+
+code {
+	white-space: pre-wrap;
+	font-family: monospace;
+	font-size: 15px;
+}
+
+</style>
+
+<body>
+<header>
+	<h1>plasmatoroid.net</h1>
+	<nav>
+		<a href="/">Home</a>
+		<a href="/lang/">Compiler</a>
+		<a href="/hw/">Hardware</a>
+		<a href="/fun/">Fun</a>
+		<a href="/recs/">Cool Stuff</a>
+		<a href="/levers/">Levers</a>
+		<a href="/about/">About</a>
+	</nav>
+	<div id="marquee"></div>
+</header>
+<main>
+	
+<h1>Test markdown</h1>
+<p>This aims to test my Markdown converter.</p>
+<h2>Lists</h2>
+<p>The following should be an unordered list:</p><ul><li>foo<ul><li>this should be 2 levels deep (and this should extend the previous paragraph)</li></li>
+<li>this should start a new list entry (and this should extend it)</li></ul></li></li>
+<li>this should go back to the top level</li></li>
+<li>baz</li></ul><p>This should also be an unordered list:</p><ul><li>a</li></li>
+<li>b</li></li>
+<li>c</li></ul><p>And this as well:</p><ul><li>thing</li></li>
+<li>another thing</li></li>
+<li>a third thing</li></ul><p>The following should all be checkboxes:</p><ul class="bullet"><li><input type="checkbox" disabled> <code>&lt;-</code> unchecked checkbox</li></li>
+<li><input type="checkbox" disabled> <code>&lt;-</code> also unchecked checkbox</li></li>
+<li><input type="checkbox" disabled checked> <code>&lt;-</code> checked checkbox</li></li>
+<li><input type="checkbox" disabled checked> <code>&lt;-</code> also checked checkbox</li></li>
+<li><input type="checkbox" disabled checked> <code>&lt;-</code> also checked checkbox</li></li>
+<li><input type="checkbox" disabled checked> <code>&lt;-</code> also checked checkbox</li></ul><p>Lists can have indentation after the dot- this will get removed on rendering</p><ul><li>this should look normal</li></li>
+<li>and this also</li></ul><p>List indentation is a bit of a rough subject. To write stuff that's compatible everywhere:</p><ul><li>Don't indent top-level list bullets</li></li>
+<li>To have multiple lines and/or sublists in a &lt;li&gt;, indent all the lines you want in that li by 4 spaces.</li></li>
+<li>To put a code block in a &lt;li&gt;, indent all the lines you want in the code block by an additional 4 spaces.</li></li>
+<li>Don't use very large numbers as &lt;ol&gt; bullets.</li></ul><p>Here's how this markdown engine works (for the purposes of processing indentation)</p><ol><li>Remember the previous indentation level; start at 0.</li></li>
+<li>Convert each tab to four spaces</li></li>
+<li>Count the number of spaces at the start of each line, then divide by 4 and round down to get the indent level for the current line.</li></li>
+<li>If the indent level went UP compared to the previous line, start a code block.</li></li>
+<li>If we see a list bullet, add 1 to the indent level for this line.</li></li>
+<li>If the indent level went DOWN compared to the previous line, close list elements as necessary.</li></ol><p>Invariants</p><ul><li>Top-level list bullets must be indented by 3 or fewer spaces (otherwise they become code blocks)</li></li>
+<li>Sublists must be indented by between 4 and 7 spaces (inclusive).<ul><li>If they are indented by 3 or fewer spaces, it is considered to be a new list element (not a sublist) because of round-down.</li></li>
+<li>If they are indented by 8 or more spaces, it is considered to be a code block.</li></ul></li></li>
+<li>Paragraphs must be indented by between 4 and 7 spaces (inclusive).</li></ul><p>This: <code><br>- foo<br>  bar<br>  - baz<br></code> Should obviously be</p>
+<ul><li>foo bar<ul><li>baz</li></ul></li></ul><p>and not</p><ul><li>foo</li></ul><p>bar</p><ul><li>baz</li></ul><p>This <code><br>100. foo<br>  bar<br>  1. baz<br></code> makes more sense to render flat, but it's still not great</p>
+<p>Also, this markdown engine doesn't support doing lists as the first block in a list item:</p>
+<p><code><br>1. - 2. foo <br></code> renders as <code>1. - 2. foo</code> and not</p><ol><li> -<pre><code>2. foo<br></code></pre></li></ol><h2>Indented code blocks</h2>
+<p>If you want to put some code, just slap an indent in front of it:</p><pre><code>this is code</code></pre><pre><code>it is cool<br></code></pre><p>You can put code blocks in lists:</p><ul><li>list element<pre><code>code block</code></pre> back to list element</li></ul><p>done with list</p>
+<p>But lists in code blocks aren't formatted</p><pre><code>- this should be a dash, not a dot<br></code></pre><pre><code>* this should be a star, not a list<br>this is indented by four spaces in a code block<br></code></pre><pre><code>they do still escape &lt;html&gt; tho<br><br></code></pre><h2>Headings</h2>
+<h1>this is a h1</h1>
+<h2>this is a h2</h2>
+<h3>this is a h3</h3>
+<h6>this is a h6</h6>
+<h6>this is also an h6</h6>
+<h1>this is a h1 with no trailing hashtags #####</h1>
+<p>This is also a h1 === And so is this: =========================================== And this is a h2 --- And so is this --------------------------------------------</p>
+<p>You can define custom IDs for your headings by putting <code>{#id}</code> after your heading:</p>
+<h4>A Heading {#ungabunga}</h4>
+<h2>Escaping</h2>
+<ul><li>the following is not blank and says <code>&lt;p&gt;&lt;/p&gt;</code>: &lt;p&gt;&lt;/p&gt;</li></li>
+<li>&amp; becomes an html entity (you may have to look at the html source)</li></li>
+<li>*this sentence is not italic, but is enclosed in stars*</li></li>
+<li>\ <code>&lt;-</code> backslash</li></li>
+<li>` <code>&lt;-</code> backtick (not in code block)</li></li>
+<li>_ <code>&lt;-</code> underscore</li></li>
+<li>{ <code>&lt;-</code> open brace</li></li>
+<li>} <code>&lt;-</code> close brace</li></li>
+<li>[ <code>&lt;-</code> open bracket</li></li>
+<li>] <code>&lt;-</code> close bracket</li></li>
+<li>( <code>&lt;-</code> open paren</li></li>
+<li>) <code>&lt;-</code> close paren</li></li>
+<li># <code>&lt;-</code> hash</li></li>
+<li>+ <code>&lt;-</code> plus</li></li>
+<li>- <code>&lt;-</code> minus/hyphen</li></li>
+<li>. <code>&lt;-</code> dot</li></li>
+<li>! <code>&lt;-</code> exclaimation mark</li></li>
+<li>a <code>&lt;-</code> backslash a</li></li>
+<li><code> ` </code> <code>&lt;-</code> single backtick, in code block</li></li>
+<li><code> `` </code> <code>&lt;-</code> two backticks in a code block</li></li>
+<li><code>`</code> <code>&lt;-</code> also a singular backtick, in code block</li></li>
+<li><code>*</code> <code>&lt;-</code> backslash star, in code block</li></li>
+<li>this * sentence ** has *** a **** bunch ***** of * stars * in * it, but not italics</li></ul><h2>Emphasis and friends</h2>
+<p>Markdown can do </p><ul><li><em>italics</em> </li></li>
+<li><strong>bold</strong> </li></li>
+<li><em><strong>both at the same time</strong></em></li></li>
+<li>italicize just the <code>ian</code> in tr<em>ian</em>gle, </li></li>
+<li>or bold the same thing: tr<strong>ian</strong>gle.</li></li>
+<li>you can <em>be in italics, and <strong>add bold, and then remove bold</strong>, and then <strong>add it for a bit</strong>, and then remove italics</em>.</li></li>
+<li><em>youcanmakepartofaworditalic</em><strong>andthenswitchtoboldimmediately</strong></li></li>
+<li><em>if you're in italics <strong>and add bold, you can</strong></em><strong> remove italics while leaving bold</strong></li></li>
+<li>strikethrough</li></li>
+<li>subscript</li></li>
+<li>^superscript^</li></li>
+<li>You can of course put <em>italics in strikethrough</em> and also <em>strikethrough in italics</em> and also <strong>strikethrough in bold</strong>, etc</li></li>
+<li>e<strong>v</strong>e<strong>r</strong>y <strong>o</strong>t<strong>h</strong>e<strong>r</strong> XD</li></li>
+<li>it's smart, so you can talk about A* without having to escape the *, and you can also just use * without escaping it.</li></li>
+<li>if you put something like <pre><code>|*sentence with *two layers* of stars*|</code></pre> then whole thing should be italic: |<em>sentence with two layers of stars</em>| and not have trailing italics.</li></li>
+<li><code>**This **also** applies to bold.** -&gt;</code> <strong>this also applies to bold</strong> with the same no-trailing thing.</li></li>
+<li>Any of these formatting choices can also be applied to <em><a href="https://example.com/">the outside of link text</a></em> and/or <a href="https://example.com/"><strong>the inside of link text</strong></a></li></ul><h2>Links (and Friends)</h2>
+<p><a href="https://wikipedia.org/wiki/Hyperlink">Links</a> can be created like this: <code>[link text](https://link.com/URL)</code>.</p>
+<p>You can also have a link but store the URL somewhere else- Wherever you want the clickable link, put this:</p><pre><code>[link text][identifier]<br></code></pre><p>and wherever you want to put the URL, put this:</p><pre><code>[identifier]: https://link.com/URL<br></code></pre><h4>You can put <a href="https://wikipedia.org/wiki/Hyperlink">links</a> in headings!</h4>
+ https://wikipedia.org/wiki/URL<ul><li>The <a href="hi">URL</a> can come before or <a href="null :(">after</a> the link that references it, and you can reference the same <a href="hi">URL</a> multiple times.</li></li>
+<li>If you use only one box, it will be used both as the link text and as the name of the reference- for instance, </li></li>
+<li>If you define the same identifier more than once, it will use the definition closest to the top of the file.</li></li>
+<li>You can link to a specific heading with <code>[link text](#heading-id)</code>.</li></ul> https://wikipedia.org/wiki/After<p>Names for links:</p><ul><li><code>[text](url)</code> - standard link </li></li>
+<li><code>[text][name]</code> - full reference</li></li>
+<li><code>[both][]</code> - also a full reference</li></li>
+<li><code>[][both]</code> - also a full reference</li></li>
+<li><code>[both]</code> - shortcut reference</li></ul><h3>Footnotes</h3>
+<p>These are the same as links, more or less. Footnote definitions are places after the next horizontal line, or at the end of the document.</p>
+ except you put a caret in the box and you have to use a reference.<pre><code>You can have long footnotes by indenting. Also note that footnote references that are not numbers are converted to numbers.</code></pre> Also, the footnote definition is actually included in the output HTML.<p>Here's another paragraph with no footnotes above it</p>
+<ul><li>* *</li></ul><p>The footnotes should be above this paragraph.</p>
+<h3>Embedded Media</h3>
+<p>If you put a <code>!</code> before a link, it will try to embed the linked content instead of just having a link to it. The link text becomes alt text in most cases. The following rules apply based on the URL:</p><ol><li>If a website is not specified (ie just <code>file.png</code> or <code>/file.png</code>), it depends on the mime type of the file<ul><li>image/*, audio/*, and video/* embed the associated HTML element if that mime type is supported by browsers.</li></li>
+<li>text/* embeds the associated text file as though it were in a fenced code block.</li></li>
+<li>All other mime types give a download link.</li></ul></li></li>
+<li>If it's a youtube.com/v=id link, embed the youtube video player for that video</li></li>
+<li>If it's anything else, it will fall back to being a normal link.</li></ol><p>This also works with references.</p>
+<p>Examples: !<a href="duck.png">a duck</a> !<a href="audio.mp3">Audio File</a> !<a href="video.mp4">Video File</a> <a href="img.png">![An image that is also a link</a>](https://example.com)</p>
+<h3>Link notes</h3>
+<p>Link precedence (listed first = parsed first)</p><ol><li>standard link</li></li>
+<li>full reference</li></li>
+<li>Footnote</li></li>
+<li>shortcut reference</li></li></ol>
+<ul><li>URLs are not validated- if it sees <a href=""></a>, it's going to treat the stuff in the () like a URL whether it's valid or not.</li></li>
+<li>If it finds a full reference (<code>[text][reference]</code>) but it can't resolve the reference, it tries to reinterperet the first box as a footnote, and then as a shortcut reference.<ul><li><code>[ref1][notref][ref2]</code> is equiv to <code>[ref1][ref1] [notref][ref2]</code></li></li>
+<li><code>[ref1][ref2][ref3]</code> is equiv to <code>[ref1][ref2] [ref3][ref3]</code></li></li>
+<li><code>[notref]</code> is equiv to <code>[notref]</code></li></li>
+<li><code>[both][][huh]</code> is equiv to <code>[both][both][huh]</code></li></ul></li></li>
+<li>Links may contain embedded images, but not any other types of embedded content.</li></ul><p></p>
+ph.</p>
+<h3>Embedded Media</h3>
+<p>If you put a <code>!</code> before a link, it will try to embed the linked content instead of just having a link to it. The link text becomes alt text in most cases. The following rules apply based on the URL:</p><ol><li>If a website is n,Ä5Òo
+</body>
+</html>

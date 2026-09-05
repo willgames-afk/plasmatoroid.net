@@ -1,0 +1,91 @@
+<h1 id="tlc-docs">TLC Docs</h1>
+<h2 id="overview">Overview</h2>
+<p>TLC is a tool for making websites. It provides templating, markdown rendering, and server-side scripting using C.</p>
+<h3 id="philosophy">Philosophy</h3>
+<p>TLC was born out of a hatred for javascript and a distaste for excessive dependancies. So, TLC is very small, it is written entirely in C, and it is scripted entirely in C.</p>
+<hr>
+<h2 id="functions">Functions</h2>
+<h3 id="use-header">Use Header</h3>
+<p>To pick a template to use for a specific page, add <code>use templatename</code> to the  first line of a TL file. If no use header is present, TLC will default to using <code>base.tl</code> for <code>.tl</code> files and <code>md.tl</code> for <code>.md</code> files.</p>
+<h3 id="tl-tags">TL tags</h3>
+<p>All TLC does is replace <code>&lt;tl&gt;</code> tags with various other content. That content can come from several different places and so there are a few variations of the <code>&lt;tl&gt;</code> tag.</p><ul><li><code>&lt;tl name&gt;</code> Insert some other file into this one.</li>
+<li><code>&lt;tl dy name&gt;</code> On page load, run a C script and put the results here.</li>
+<li><code>&lt;tl add&gt;...&lt;/tl&gt;</code> Add the contents of this tag to the head of the parent template.</li></ul><p>When files are inserted (with <code>&lt;tl name&gt;</code>), they are preprocessed depending on  their extension:</p><ul><li><code>.tl</code> files are rendered</li>
+<li><code>.c</code> files are compiled and run and their output is inserted</li>
+<li>all other files are output verbatim</li></ul><h3 id="templates">Templates </h3>
+<p>TLC templates must have a <code>&lt;tl content&gt;</code> tag, where the content of the page is inserted, and a <code>&lt;tl head&gt;</code> tag, where resources intended for the head of the document (stylesheets, etc) are inserted.</p>
+<h2 id="tlc-flavored-markdown">TLC-flavored Markdown</h2>
+<p>TLC has its own blend of <a href="https://daringfireball.net/projects/markdown/">markdown</a>, because why not. It supports:</p><ul><li>Headings (<code># foo</code>), with automatic or manual html id assignment.</li>
+<li>Italic (<code>*</code>)</li>
+<li>Bold (<code>**</code>)</li>
+<li>Superscript (<code>^</code>)</li>
+<li>Subscript (<code>~</code>)</li>
+<li>Strikethru (<code>~~</code>)</li>
+<li>Blockquotes (<code>&gt;</code>)</li>
+<li>Ordered Lists (<code>1.</code>)</li>
+<li>Unordered Lists (<code>-</code>,<code>+</code>,<code>*</code>)</li>
+<li>Task Lists (<code>- [x]</code>)</li>
+<li>Inline Code (<code> `code` </code>)</li>
+<li>Fenced code blocks<pre><code>```js</code></pre><pre><code>console.log("Hellorld!");</code></pre><pre><code>```</code></pre></li>
+<li>Links (<code>[display text](https://example.com)</code>)</li>
+<li>Images (<code>!alt text](image.jpg)</code>)</li>
+<li>Download links (<code>!d[display text](file.txt)</code>)</li>
+<li>Audio (<code>!a[alt text](audio.mp3)</code>)</li>
+<li>Video (<code>!v[alt text](video.mp4)</code>)</li>
+<li>Footnotes (<code>[^footnote]</code>)</li>
+<li>References (<code>[foo]: https://example.com optional title here</code>)</li></ul><p>It does not support:</p><ul><li>Autolinks, even if wrapped in <code>&lt;&gt;</code>, as this is redundant and unnecessary.</li>
+<li>Sextet-style headings (<code>---</code>, <code>===</code>)- these require excessive lookahead to parse.</li>
+<li>Raw HTML- raw HTML presents both minor safety issues and is extra work to parse.</li>
+<li>Lazy hard-wrapped text- you must put a <code>&gt;</code> before every line in a blockquote and  you must indent every line that is part of a list element. This makes parsing easier and more consistent.</li></ul><h3 id="common-questions">Common questions</h3>
+<p>This list is based off the <a href="null :(">Why is a spec needed?</a> section of the Github-flavored Markdown spec.</p>
+<ol><li><h4 id="how-much-indentation-is-needed-for-a-sublist">How much indentation is needed for a sublist?</h4>
+<p>4 spaces, universally. TLC-flavored markdown converts spaces to tabs by dividing by four and rounding down, and that is used as the indentation level. This is the fabled "four spaces rule".</p>
+</li>
+<li><h4 id="is-a-blank-line-needed-before-a-blockquote-or-heading">Is a blank line needed before a blockquote or heading?</h4>
+<p>No.</p>
+</li>
+<li><h4 id="is-a-blank-line-needed-before-an-indented-code-block">Is a blank line needed before an indented code block?</h4>
+<p>No.</p>
+</li>
+<li><h4 id="what-is-the-exact-rule-for-determining-whether-list-items-get-wrapped-in-p-tags">What is the exact rule for determining whether list items get wrapped in <code>&lt;p&gt;</code> tags?</h4>
+<p>TLC will always <em>start</em> by producing a tight list; if you just put text in a list it will always be tight. However, if a heading or other block-level  construct is used, it will revert to wrapping future text in paragraphs.  There is no way to get TLC to wrap the entire contents of a list in a <code>&lt;p&gt;</code>  tag.</p>
+</li>
+<li><h4 id="can-list-markers-be-indented-can-ordered-list-markers-be-right-aligned">Can list markers be indented? Can ordered list markers be right-aligned?</h4>
+<p>Yes, as long as the number of spaces required is 3 or less.</p>
+<p>TLC's indentation is done by dividing the number of spaces by four and rounding down, so you are allowed to indent list markers by 3 spaces or fewer without adverse effects. This means that aligning list markers  from 1 to 9999 is possible.</p>
+</li>
+<li><h4 id="how-do-thematic-breaks-play-with-list-items">How do thematic breaks play with list items?</h4>
+<p>Thematic breaks take priority over lists, so the following is interpereted as two lists seperated by a thematic break. <code>md<br>	* a<br>	* * * * *<br>	* b<br>	</code></p>
+</li>
+<li><h4 id="when-list-markers-change-from-numbers-to-bullets-do-we-have-2-lists-or-one">When list markers change from numbers to bullets, do we have 2 lists or one?</h4>
+<p>Two seperate lists; one ordered and one unordered.</p>
+</li>
+<li><h4 id="what-are-the-precedence-rules-for-inline-structure">What are the precedence rules for inline structure?</h4>
+<p>TODO</p>
+</li>
+<li><h4 id="what-are-the-precedence-rules-for-markers-of-emphasis-and-strong-emphasis">What are the precedence rules for markers of emphasis and strong emphasis?</h4>
+<p>TLC does not maintain a node higherarchy for any formatting markup  (emphasis, strong, strikethrough, subscript, superscript, etc). Instead, it tracks the transitions between various markup states and generates whatever HTML is required to perform that transition. For example: <code>md<br>	*foo **bar* baz**<br>	</code> results in <code>html<br>	&lt;em&gt;foo&lt;strong&gt;bar&lt;/strong&gt;&lt;/em&gt;&lt;strong&gt;baz&lt;/strong&gt;<br>	</code> This is both more expressive and easier to parse, while remaining largely compatible with most markdown implementations, so I like it.</p>
+</li>
+<li> <h4 id="what-are-the-precedence-rules-between-block-level-and-inline-level-structures">What are the precedence rules between block-level and inline-level structures?</h4>
+<p>TODO</p>
+</li>
+<li><h4 id="can-list-items-include-headings">Can list items include headings?</h4>
+<p>Yes, as long as they are not on the first line of the list. This is not a heading: <code>md<br>	1. # heading<br>	</code> This is a heading: <code>md<br>	1. <br>		# heading<br>	</code></p>
+</li>
+<li><h4 id="can-list-items-be-empty">Can list items be empty?</h4>
+<p>Yes! I don't know why you'd want this, but yes they can be empty.</p>
+</li>
+<li><h4 id="can-link-references-be-defined-inside-blockquotes-or-list-items">Can link references be defined inside blockquotes or list items?</h4>
+<p>Yes! You can put link reference definitions wherever you want, and you can  indent them however you want, and they will not screw up the layout of your document. This applies to footnote definitions as well.</p>
+</li>
+<li><h4 id="if-there-are-multiple-definitions-for-the-same-reference-which-one-wins">If there are multiple definitions for the same reference, which one wins?</h4>
+<p>There are 2 rules for this. First, a definition within the current blockquote takes priority over one outside the current blockquote. This takes priority over the second rule, which is that the first definition for a particular reference takes priority.</p>
+<p>This is so that you can <em>always</em> embed any TLC document into another one simply by copypasting it and enclosing it in a blockquote.</p>
+</li></ol><h1 id="this-is-a-degenerate-heading">this is a ########################################### degenerate heading    </h1>
+<hr>
+<hr>
+<hr>
+<hr>
+<hr>
+<ul><li>* * - - - * * *</li>
+<li>- - _</li></ul><p>_ _ _ _ _ _ _ oh, you thought this was a thematic break? hah! how foolish.</p>

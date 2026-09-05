@@ -1,0 +1,10 @@
+[Unit]
+BindsTo=minecraft.service
+
+[Socket]
+ListenFIFO=/run/minecraft.control
+FileDescriptorName=control
+RemoveOnStop=true
+SocketMode=0666
+SocketUser=minecraft
+SocketGroup=minecraft

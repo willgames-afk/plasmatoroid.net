@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<title>Plasmatoroid</title>
+	<meta name="color-scheme" content="dark">
+</head>
+
+<body>
+	<canvas id="plasma"></canvas>
+	<script>
+		let c = document.getElementById("plasma");
+		let ctx = c.getContext("2d");
+
+		const w = 30
+		const h = w * 3/4
+		const sc = 20;
+
+		c.width = w * sc;
+		c.height = h * sc;
+		let plasmas = [];
+		for (let i=0;i<10;i++) {
+			plasmas.push({x: Math.random() * w/2, y:Math.random() * (h) , xv: 0, yv: 0, density: 0});
+		}
+
+
+		// Notes:
+		// Particle mass is always 1, and particle radius is also always 1.
+
+		//gives the influence of the particle based on distance to it
+		// (radius is always 1)
+
+		function smooth(dist) {
+			if (dist >= 1) return 0;
+			let n = 1 - dist;
+			return n * n / (Math.PI/6)
+		}
+
+
+		// gives the steepness of the smoothness function at a given point near a particle
+		// This is the derivative of smooth(dist)
+		function smoothSlope(dist) {
+			if (dist >= 1) return 0;
+			let scale = 12/ Math.PI;
+			return (dist - 1) * scale;
+		}
+
+		function smoothSlope(dist) {
+			if (dist >= 1) return 0;
+			return (dist - 1)
+		}
+
+		function calcDensities() {
+			for (let i=0;i<plasmas.length;i++) {
+				plasmas[i].density = 1;
+				for (let j=0;j<plasmas.length;j++) {
+					if (j == i) continue;
+					let xd = plasmas[j].x - plasmas[i].x;
+					let yd = plasmas[j].y - plasmas[i].y;
+					let dist = Math.sqrt(xd * xd + yd * yd);
+					plasmas[i].density += smooth(dist);
+				}
+			}
+			//console.log(plasmas[0].density)
+		}
+
+		const targetDensity = 1;
+		const pf = 0.02
+		function calcPressure(density) {
+			return (density-targetDensity) * pf
+		}
+
+		function applyPressureForces(dt) {
+			for (let j=0;j<plasmas.length;j++) {
+				//if (plasmas[j].density == 0) continue;
+				let gx = 0;
+				let gy = 0;
+				for (let i=0;i<plasmas.length;i++) {
+					if (i == j) continue;
+					let xd = plasmas[i].x - plasmas[j].x;
+					let yd = plasmas[i].y - plasmas[j].y;
+					let dist = Math.sqrt(xd * xd + yd * yd);
+					xd /= dist;
+					yd /= dist;
+					let slope = smoothSlope(dist);
+					let avgDensityErr = (calcPressure(plasmas[j].density) + calcPressure(plasmas[i].density))/2
+					gx += xd * slope * avgDensityErr;
+					gy += yd * slope * avgDensityErr;
+				}
+				plasmas[j].xv += gx * dt / plasmas[j].density;
+				plasmas[j].yv += gy * dt / plasmas[j].density;
+			}
+		}
+
+		const damp = 0.2
+		function updatePlasmas(dt) {
+			calcDensities();
+			applyPressureForces(dt);
+			for (let i=0;i<plasmas.length;i++) {
+				if (plasmas[i].x > w) {
+					plasmas[i].x = w;
+					plasmas[i].xv *= -damp;
+				} else if (plasmas[i].x < 0) {
+					plasmas[i].x = 0;
+					plasmas[i].xv *= -damp;
+				}
+				if (plasmas[i].y > h) {
+					plasmas[i].y = h;
+					plasmas[i].yv *= -damp;
+				} else if (plasmas[i].y < 0) {
+					plasmas[i].y = 0;
+					plasmas[i].yv *= -damp;
+				}
+				//plasmas[i].yv += 0.0005 * dt
+				plasmas[i].x += plasmas[i].xv * dt;
+				plasmas[i].y += plasmas[i].yv * dt;
+				let scale = 1 - 0.006;
+				plasmas[i].xv *= scale
+				plasmas[i].yv *= scale;
+			}
+			//console.log(plasmas[0]);
+		}
+		function draw() {
+			//console.log(img);
+			//bobson()
+			ctx.fillStyle = "black";
+			ctx.fillRect(0,0,c.clientWidth,c.clientHeight);
+			let img = ctx.getImageData(0,0,c.clientWidth,c.clientHeight);
+			//ctx.fillStyle = "white";
+			const dia = Math.floor(sc)
+			for (let i=0;i<plasmas.length;i++) {
+				for (let xo=-dia;xo<dia;xo++) {
+					if ((Math.floor(plasmas[i].x * sc) + xo) >= img.width) continue;
+					if ((Math.floor(plasmas[i].x * sc) + xo) < 0) continue;
+					for (let yo=-dia;yo<dia;yo++) {
+					img.data[(Math.floor(plasmas[i].x * sc) + xo + Math.floor(plasmas[i].y * sc + yo) * img.width) * 4] += Math.floor((1000/(xo * xo + yo * yo)));
+				//img.data[(plasmas[i].x * sc + (plasmas[i].y * sc) * img.width) * 4] = 10; //100 * Math.sqrt((xo * xo + yo * yo)/(sc * sc));
+						//img.data[]
+					}
+				}
+				//}
+				//ctx.beginPath();
+				//ctx.arc(plasmas[i].x * sc,plasmas[i].y * sc,sc * 0.2, 0,2 * Math.PI);
+				//ctx.fill();
+			}
+			for (let i=0;i<img.data.length;i+=4) {
+				if (img.data[i]  > 20) {
+					img.data[i] *= img.data[i] * 3/10
+				} else {
+					//img.data[i];
+				}
+			}
+			ctx.putImageData(img,0,0);
+			
+		}
+		let lastT = performance.now();
+		let mx = 0;
+		let my = 0;
+		let md = false;
+		function loop(t) {
+			let dt = (t - lastT)/ 16.66;
+			lastT = t;
+			if (dt > 0 && dt < 10) {
+				for (let j=0;j<plasmas.length;j++) {
+					plasmas[j].yv += 0.01 * dt
+					//if (plasmas[j].y > 15) plasmas[j].xv += 0.01* dt;
+				}
+
+				const loops = 1;
+				for (let i=0;i<loops;i++) {
+					updatePlasmas(dt/loops);
+				}
+				if (md) {
+					for (let i=0;i<3;i++) {
+						plasmas.push({x:mx / sc + Math.random() * 2, y:my/sc +  Math.random() * 2 , xv: 0, yv: 0.2, density: 0});
+						if (plasmas.length > 1500) plasmas.splice(Math.floor(Math.random() * plasmas.length),1);
+					}
+				}
+				draw();
+			}
+			requestAnimationFrame(loop);
+		}
+		loop();
+
+		c.addEventListener("mousemove",(e)=>{
+			//console.log(e);
+			mx = e.clientX;
+			my = e.clientY;
+		})
+		c.addEventListener("mousedown",(e)=>{
+			md = true;
+		})
+		c.addEventListener("mouseup",(e)=>{
+			md = false;
+		})
+		
+	</script>
+</body>
+
+</html>
